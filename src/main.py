@@ -8,10 +8,12 @@ import subprocess
 import struct
 from collections import namedtuple
 
+# https://github.com/jiaaro/pydub/blob/72b474e0f2e48d37bbe9b8a36c4a055157e53c6b/pydub/audio_segment.py#L87
 WavSubChunk = namedtuple("WavSubChunk", ["id", "position", "size"])
 WavData = namedtuple("WavData", ["audio_format", "channels", "sample_rate",
                                  "bits_per_sample", "raw_data"])
 
+# https://github.com/jiaaro/pydub/blob/72b474e0f2e48d37bbe9b8a36c4a055157e53c6b/pydub/utils.py#L26
 ARRAY_TYPES = {
     8: "b",
     16: "h",
@@ -19,6 +21,7 @@ ARRAY_TYPES = {
 }
 
 
+# https://github.com/jiaaro/pydub/blob/72b474e0f2e48d37bbe9b8a36c4a055157e53c6b/pydub/utils.py#L42
 def get_array_type(bit_depth, signed=True):
     t = ARRAY_TYPES[bit_depth]
     if not signed:
@@ -26,6 +29,8 @@ def get_array_type(bit_depth, signed=True):
     return t
 
 
+# https://github.com/jiaaro/pydub/blob/72b474e0f2e48d37bbe9b8a36c4a055157e53c6b/pydub/audio_segment.py#L108
+# 例外送出を Exception に変更
 def read_wav_audio(data, headers=None):
     if not headers:
         headers = extract_wav_headers(data)
@@ -53,6 +58,7 @@ def read_wav_audio(data, headers=None):
                    data[pos:pos + data_hdr.size])
 
 
+# https://github.com/jiaaro/pydub/blob/72b474e0f2e48d37bbe9b8a36c4a055157e53c6b/pydub/audio_segment.py#L92
 def extract_wav_headers(data):
     # def search_subchunk(data, subchunk_id):
     pos = 12  # The size of the RIFF chunk descriptor
@@ -69,6 +75,8 @@ def extract_wav_headers(data):
     return subchunks
 
 
+# https://github.com/jiaaro/pydub/blob/72b474e0f2e48d37bbe9b8a36c4a055157e53c6b/pydub/audio_segment.py#L135
+# 例外送出を Exception に変更
 def fix_wav_headers(data):
     headers = extract_wav_headers(data)
     if not headers or headers[-1].id != b"data":
