@@ -1,66 +1,28 @@
-# py_init2
+# get_waveform
 
-This template uses [pipenv](https://pipenv.pypa.io/en/latest/) and assumes that it will be used with VSCode.  
-Also, install the [Python extension](https://marketplace.visualstudio.com/items?itemName=ms-python.python) beforehand.
+音声から波形データを Int 型の配列で取得するためのテスト。  
+取得までの工程を理解することで、同様の処理を多言語に応用することを最終的な目標とする。
 
-## Usage
+## 大まかな処理の流れ
 
-### 1. Clone repository
+### 1. wav へ変換する
 
-```
-git clone https://github.com/ippee/py_init.git project_name
-```
+変換には ffmpeg を用いる。  
+以下のコマンドによって、対象の音声形式を WAV へと変換し、結果（バイナリ）を標準出力する。
 
-### 2. Initialize repository
-
-Delete the Git repository that already exists and create a new one.
-
-```
-cd ./project_name
-
-# Windows
-Remove-Item -Recurse -Force ./.git
-
-# Linux/Mac
-rm -rf ./.git
-
-git init
+```shell
+ffmpeg -i input -f wav -
 ```
 
-### 3. Create virtual environment
+### 2. 各チャンクの分離
 
-```
-pipenv --python 3.9 # set your python version
-```
+WAV は RIFF 形式となっているため、WAV ファイル全体が RIFF チャンクとなっている。  
+RIFF チャンク内には、実際の波形のデータを含むデータチャンクだけでなく、サンプリングレートやチャンネル数などといった情報を含むフォーマットチャンクも存在する。  
+そのため、純粋な波形のデータを取得するためには、これらを分離する必要がある。
 
-Then, open the project using VSCode.
+### 3. バイナリ配列から Int 型の配列に変換
 
-```
-code .
-```
+得られた波形データを Int 型配列に変換するには、元データのビット深度を把握する必要がある。  
+ビット深度とは 1 サンプルあたりの情報量を示す単位であり、音声ファイルの場合、一般的には 16bit が最も多く用いられる（ただし、ハイレゾ音源や音楽制作に置ける 2mix ファイル等はその限りではない）。
 
-### 4. Select interpreter
-
-Open the command palette (Win/Linux: "Ctrl + Shift + P", Mac: "Command + Shift + P") and select `Python: Select Interpreter`, then select the recommended interpreter. (If it is not exist, enter the path of the interpreter in the virtual environment.)
-
-### 5. Install packages
-
-Install the packages you need in the working directory.
-
-`pipenv install [package_name]`
-
-## Tasks
-
-In this template, the frequently used commands are registered in tasks.json.
-
-- Install
-  - Install all the packages written in the Pipfile.
-- Run
-  - Run ./src/main.py.
-- Test
-  - Runs all the tests in the tests directory.
-
-## License
-
-This repository is published under CC0 1.0 Universal.  
-When you start your project from this repository, replace the license with the one you like.
+ビット深度はフォーマットチャンクから取得できるため、あとはその単位ごとにバイナリ配列を区切り、Int 型に変換して配列化することで目的は達せられる。
